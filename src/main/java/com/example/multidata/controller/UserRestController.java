@@ -1,5 +1,7 @@
 package com.example.multidata.controller;
 
+import java.util.Optional;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,9 +22,9 @@ public class UserRestController {
     private final UserService userService;
 
     @GetMapping("/{userName}")
-    public ResponseEntity<?> selectUser(@PathVariable String username) {
-        User user = userService.selectByUserName(username);
-        if (user == null) {
+    public ResponseEntity<?> selectUser(@PathVariable String userName) {
+        Optional<User> user = userService.selectByUserName(userName);
+        if (user.isEmpty()) {
             return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
         } else {
             return new ResponseEntity<>(user, HttpStatus.NOT_FOUND);

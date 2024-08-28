@@ -1,5 +1,7 @@
 package com.example.multidata.service;
 
+import java.util.Optional;
+
 import org.springframework.stereotype.Service;
 
 import com.example.multidata.entity.User;
@@ -18,8 +20,7 @@ public class UserService {
                 .orElseThrow(() -> new RuntimeException("User Not Found"));
     }
 
-    public User selectByUserName(String username) {
-        return userRepository.findByUserName(username)
-                .orElseThrow(() -> new RuntimeException("User Not Found"));
+    public Optional<User> selectByUserName(String username) {
+        return userRepository.findByUserName(username);
     }
 }
