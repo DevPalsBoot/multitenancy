@@ -35,8 +35,8 @@ public class SecurityConfig {
             "/health",
             "/swagger-ui/**",
             "/v3/api-docs/**",
-            "/api/webhooks/**",
-            "swagger-resources/**"
+            "swagger-resources/**",
+            "/api/user/**"
     };
 
     @Bean

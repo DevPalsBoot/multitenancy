@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 
 import com.example.multidata.entity.User;
 import com.example.multidata.repository.UserRepository;
+import com.example.multidata.service.redis.TenantService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -14,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final TenantService tenantService;
 
     public User selectByEmail(String email) {
         return userRepository.findByUserName(email)
@@ -22,5 +24,9 @@ public class UserService {
 
     public Optional<User> selectByUserName(String username) {
         return userRepository.findByUserName(username);
+    }
+
+    public void saveUserTenantId(String email, String tenantId) {
+        tenantService.saveUserTenantId(email, tenantId);
     }
 }
