@@ -4,7 +4,7 @@ spring:
   jpa:
     show-sql: true
     hibernate:
-      ddl-auto: none
+      ddl-auto: create
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
@@ -12,3 +12,11 @@ spring:
     username: jiwon
     url: jdbc:postgresql://127.0.0.1:5432/cloud
     password: 1111
+  data:
+    redis:
+      host: 127.0.0.1
+      port: 6379
+jwt:
+  secret: c2lsdmVybmluZS10ZWNoLXNwcmluZy1ib290LWp3dC10dXRvcmlhbC1zZWNyZXQtc2lsdmVybmluZS10ZWNoLXNwcmluZy1ib290LWp3dC10dXRvcmlhbC1zZWNyZXQK
+  token-period-sec: 600000 # ?
+  refresh-token-period-day: 90 # ?
