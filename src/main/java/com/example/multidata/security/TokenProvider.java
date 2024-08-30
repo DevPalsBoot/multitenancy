@@ -6,7 +6,7 @@ import java.util.Date;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import com.example.multidata.entity.UserTenant;
+import com.example.multidata.domain.UserTenant;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
@@ -17,7 +17,9 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 @Slf4j
 public class TokenProvider {
+
     private static final String AUTHORITIES_KEY = "auth";
+    private static final String TENANT_KEY = "tid";
 
     @Value("${jwt.secret}")
     private String secret;
@@ -25,11 +27,12 @@ public class TokenProvider {
     private Long tokenPeriodSec;
 
     public String generateToken(UserTenant userTenant) {
-        if (userTenant == null || userTenant.getEmail() == null) {
+        if (userTenant == null || userTenant.getEmail() == null || userTenant.getTenantId() == null) {
             return "";
         }
         return Jwts.builder()
                 .claim(AUTHORITIES_KEY, userTenant.getRoleCode())
+                .claim(TENANT_KEY, userTenant.getTenantId())
                 .subject(userTenant.getEmail().toLowerCase())
                 .expiration(getExpirationDate())
                 .signWith(Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8)))
@@ -47,6 +50,12 @@ public class TokenProvider {
         return getClaims(token)
                 .getPayload()
                 .getSubject();
+    }
+
+    public String getTenantIdFromToken(String token) {
+        return (String) getClaims(token)
+                .getPayload()
+                .get(TENANT_KEY);
     }
 
     public Claims getClaimsBody(String token) {

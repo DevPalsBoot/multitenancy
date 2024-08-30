@@ -7,7 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import com.example.multidata.entity.User;
-import com.example.multidata.entity.UserTenant;
+import com.example.multidata.domain.UserTenant;
 import com.example.multidata.service.UserService;
 
 import lombok.RequiredArgsConstructor;

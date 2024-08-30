@@ -18,7 +18,7 @@ public class UserService {
     private final TenantService tenantService;
 
     public User selectByEmail(String email) {
-        return userRepository.findByUserName(email)
+        return userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User Not Found"));
     }
 

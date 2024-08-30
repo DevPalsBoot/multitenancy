@@ -20,7 +20,11 @@ public class TenantService {
      * @return
      */
     public String getTenantId(String email) {
-        return tenantRepository.findTenantIdByUser(email);
+        String tenantId = tenantRepository.findTenantIdByUser(generateKey(email));
+        if (tenantId.isEmpty()) {
+            throw new RuntimeException("Not found: " + email + " tenant id");
+        }
+        return tenantId;
     }
 
     /**

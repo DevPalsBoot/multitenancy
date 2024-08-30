@@ -14,6 +14,9 @@ import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 
 import com.example.multidata.security.CustomUsernamePasswordAuthenticationFilter;
 import com.example.multidata.security.JwtAuthenticationFilter;
+import com.example.multidata.security.TokenProvider;
+import com.example.multidata.service.UserService;
+import com.example.multidata.service.redis.TenantService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -23,6 +26,9 @@ import lombok.RequiredArgsConstructor;
 public class SecurityConfig {
 
     private final AuthenticationManager authenticationManager;
+    private final UserService userService;
+    private final TenantService tenantService;
+    private final TokenProvider tokenProvider;
 
     private static final String[] AUTH_WHITELIST = {
             "/",
@@ -60,7 +66,8 @@ public class SecurityConfig {
                         .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
                         .ignoringRequestMatchers("/**")
                 )
-                .addFilter(new CustomUsernamePasswordAuthenticationFilter(authenticationManager))
+                .addFilter(new CustomUsernamePasswordAuthenticationFilter(authenticationManager,
+                                                                            userService, tenantService, tokenProvider))
                 .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
                 .getOrBuild();
     }

@@ -10,7 +10,11 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-import com.example.multidata.entity.UserLogin;
+import com.example.multidata.entity.User;
+import com.example.multidata.domain.UserLogin;
+import com.example.multidata.domain.UserTenant;
+import com.example.multidata.service.UserService;
+import com.example.multidata.service.redis.TenantService;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -21,14 +25,25 @@ import jakarta.servlet.http.HttpServletResponse;
 
 public class CustomUsernamePasswordAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
 
+    private final UserService userService;
+    private final TenantService tenantService;
+    private final TokenProvider tokenProvider;
+
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
     static {
         objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     }
 
-    public CustomUsernamePasswordAuthenticationFilter(AuthenticationManager authenticationManager) {
+    public CustomUsernamePasswordAuthenticationFilter(AuthenticationManager authenticationManager,
+                                                      UserService userService,
+                                                      TenantService tenantService,
+                                                      TokenProvider tokenProvider) {
         super(authenticationManager);
+        this.userService = userService;
+        this.tenantService = tenantService;
+        this.tokenProvider = tokenProvider;
+        setFilterProcessesUrl("/api/user/login");
     }
 
     @Override
@@ -51,6 +66,11 @@ public class CustomUsernamePasswordAuthenticationFilter extends UsernamePassword
 
     @Override
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authResult) throws IOException, ServletException {
-        super.successfulAuthentication(request, response, chain, authResult);
+        User user = userService.selectByEmail(authResult.getName());
+        UserTenant userTenant = new UserTenant();
+        userTenant.setEmail(user.getEmail());
+        userTenant.setTenantId(tenantService.getTenantId(user.getEmail()));
+        response.getWriter().write(tokenProvider.generateToken(userTenant));    // user-tenantId 값으로 token 생성
+        // refresh token 생략
     }
 }

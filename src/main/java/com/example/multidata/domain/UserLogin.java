@@ -1,4 +1,4 @@
-package com.example.multidata.entity;
+package com.example.multidata.domain;
 
 import lombok.Data;
 
