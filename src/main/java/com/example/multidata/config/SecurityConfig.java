@@ -12,11 +12,13 @@ import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 
+import com.example.multidata.filter.DataSourceRoutingFilter;
 import com.example.multidata.security.CustomUsernamePasswordAuthenticationFilter;
 import com.example.multidata.security.JwtAuthenticationFilter;
 import com.example.multidata.security.TokenProvider;
 import com.example.multidata.service.UserService;
 import com.example.multidata.service.redis.TenantService;
+import com.example.multidata.util.datasource.DataSourceManager;
 
 import lombok.RequiredArgsConstructor;
 
@@ -26,6 +28,7 @@ import lombok.RequiredArgsConstructor;
 public class SecurityConfig {
 
     private final AuthenticationManager authenticationManager;
+    private final DataSourceManager dataSourceManager;
     private final UserService userService;
     private final TenantService tenantService;
     private final TokenProvider tokenProvider;
@@ -69,11 +72,16 @@ public class SecurityConfig {
                 .addFilter(new CustomUsernamePasswordAuthenticationFilter(authenticationManager,
                                                                             userService, tenantService, tokenProvider))
                 .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(dataSourceRoutingFilter(), JwtAuthenticationFilter.class)
                 .getOrBuild();
     }
 
     @Bean
     public JwtAuthenticationFilter jwtAuthenticationFilter() {
         return new JwtAuthenticationFilter();
+    }
+
+    public DataSourceRoutingFilter dataSourceRoutingFilter() {
+        return new DataSourceRoutingFilter();
     }
 }

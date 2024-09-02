@@ -11,7 +11,9 @@ spring:
   datasource:
     username: jiwon
     url: jdbc:postgresql://127.0.0.1:5432/cloud
-    password: 1111
+    password: 
+    hikari:
+      driver-class-name: org.postgresql.Driver
   data:
     redis:
       host: 127.0.0.1
