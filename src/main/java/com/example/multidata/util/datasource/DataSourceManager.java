@@ -1,7 +1,9 @@
 package com.example.multidata.util.datasource;
 
 import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
@@ -9,6 +11,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import javax.sql.DataSource;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.lookup.AbstractRoutingDataSource;
 import org.springframework.stereotype.Component;
@@ -16,6 +19,7 @@ import org.springframework.stereotype.Component;
 import com.example.multidata.entity.DataSourceInfo;
 import com.zaxxer.hikari.HikariDataSource;
 
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -24,6 +28,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 
 @Slf4j
+@Getter
 @Component
 @RequiredArgsConstructor
 public class DataSourceManager {
@@ -97,6 +102,11 @@ public class DataSourceManager {
             }
             newDataSource = createDataSource(dataSourceInfo);
             dataSourceMap.put(tenantId, newDataSource);
+
+            if (!isTenantExists(tenantId)) {
+                createTenant(tenantId, (HikariDataSource) dataSourceMap.get(tenantId));
+            }
+
             try (Connection c = newDataSource.getConnection()) {
                 dataSourceMap.put(tenantId, newDataSource);
                 routingDataSource.afterPropertiesSet();
@@ -108,11 +118,12 @@ public class DataSourceManager {
         }
     }
 
-    private void setDataSourcePool() {
+    public void setDataSourcePool() {
         DataSource defaultDataSource = routingDataSource.getResolvedDefaultDataSource();
 
+        // Data source 정보로 Map 초기화
         JdbcTemplate jdbcTemplate = new JdbcTemplate(Objects.requireNonNull(defaultDataSource));
-        String sql = "SELECT * FROM datasouce_info";
+        String sql = "SELECT * FROM datasource_info";
         jdbcTemplate.query(
                 sql,
                 (rs, rowNum) -> {
@@ -129,6 +140,62 @@ public class DataSourceManager {
                     return dataSource;
                 }
         );
+
+        // tenant db 생성
+        for(Object key : dataSourceMap.keySet()) {
+            String tenantId = (String) key;
+            if (!isTenantExists(tenantId)) {
+                createTenant(tenantId, (HikariDataSource) dataSourceMap.get(key));
+            }
+        }
+    }
+
+
+    /**
+     * 태넌트 디비 존재 확인
+     * @param tenantId
+     * @return
+     */
+    private boolean isTenantExists(String tenantId) {
+        HikariDataSource dataSource = (HikariDataSource) dataSourceMap.get(tenantId);
+        try (Connection conn = DriverManager.getConnection(dataSource.getJdbcUrl(), dataSource.getUsername(), dataSource.getPassword())) {
+            // 데이터베이스가 존재하는 경우
+            return true;
+        } catch (SQLException e) {
+            // 데이터베이스가 존재하지 않는 경우
+            return false;
+        }
+    }
+
+    /**
+     * 태넌트 디비 생성
+     * @param tenantId
+     * @param dataSource
+     */
+    private void createTenant(String tenantId, HikariDataSource dataSource) {
+        String createDatabaseSQL = String.format(
+                "CREATE DATABASE \"%s\" ENCODING = 'UTF8' TABLESPACE = pg_default CONNECTION LIMIT = -1;",
+                tenantId);
+        String createUserSQL = String.format(
+                "CREATE USER \"%s\" WITH PASSWORD '%s';", dataSource.getUsername(), dataSource.getPassword());
+        String grantPrivilegesSQL = String.format(
+                "GRANT ALL PRIVILEGES ON DATABASE \"%s\" TO \"%s\";", tenantId, dataSource.getUsername());
+
+
+        try (Connection conn = routingDataSource.getResolvedDefaultDataSource().getConnection();
+             Statement stmt = conn.createStatement()) {
+            // 데이터베이스 생성
+            stmt.execute(createDatabaseSQL);
+            System.out.println("Success: Created database " + tenantId);
+
+            // 사용자 생성 및 권한 부여
+            stmt.execute(createUserSQL);
+            stmt.execute(grantPrivilegesSQL);
+            System.out.println("Success: Created user " + dataSource.getUsername() + " and granted privileges on " + tenantId);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new RuntimeException("Error creating database " + tenantId, e);
+        }
     }
 
     /**

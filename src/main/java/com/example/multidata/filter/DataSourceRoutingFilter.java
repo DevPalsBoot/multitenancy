@@ -22,6 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 @NoArgsConstructor
 public class DataSourceRoutingFilter extends OncePerRequestFilter {
 
+    private static final Pattern TENANT_ID_PATTERN = Pattern.compile("^/api/user/tenant$");
     private static final Pattern LOGIN_URI_PATTERN = Pattern.compile("^/api/user/login$");
 
     @Autowired
@@ -35,6 +36,10 @@ public class DataSourceRoutingFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String token = getBearerToken(request);
         if (token == null) {
+            if (TENANT_ID_PATTERN.matcher(request.getRequestURI()).matches() || LOGIN_URI_PATTERN.matcher(request.getRequestURI()).matches()) {
+                filterChain.doFilter(request, response);
+                return;
+            }
             log.error("Error: token not found in request header.");
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "token not found");
             throw new RuntimeException("Error: token not found in request header.");
@@ -47,6 +52,7 @@ public class DataSourceRoutingFilter extends OncePerRequestFilter {
 
     /**
      * token 에서 tenant id 값 추출
+     *
      * @param request
      * @return
      */

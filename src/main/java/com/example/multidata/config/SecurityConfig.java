@@ -81,6 +81,7 @@ public class SecurityConfig {
         return new JwtAuthenticationFilter();
     }
 
+    @Bean
     public DataSourceRoutingFilter dataSourceRoutingFilter() {
         return new DataSourceRoutingFilter();
     }
