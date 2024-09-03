@@ -15,7 +15,7 @@ public class TenantService {
     private final TenantRepository tenantRepository;
 
     /**
-     * 태넌트 아이디 조회
+     * 테넌트 아이디 조회
      * @param email
      * @return
      */
@@ -28,7 +28,7 @@ public class TenantService {
     }
 
     /**
-     * 사용자의 태넌트 아이디 저장
+     * 사용자의 테넌트 아이디 저장
      * @param email
      * @param tenantId
      */

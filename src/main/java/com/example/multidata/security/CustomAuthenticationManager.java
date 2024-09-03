@@ -24,9 +24,7 @@ public class CustomAuthenticationManager implements AuthenticationManager {
 
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
-        // 최초 로그인 시 data source routing
         String tenantId = tenantService.getTenantId(authentication.getName());
-        dataSourceManager.setCurrent(tenantId);
         DataSourceContextHolder.setRoutingKey(tenantId);
         UserDetails userDetails = customUserDetailsService.loadUserByUsername(authentication.getName());
         if (!authentication.getCredentials().equals(userDetails.getPassword())) {
