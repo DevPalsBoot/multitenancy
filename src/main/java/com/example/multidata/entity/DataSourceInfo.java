@@ -24,12 +24,6 @@ public class DataSourceInfo {
     @Column(name = "url")
     private String url;
 
-    @Column(name = "username")
-    private String userName;
-
-    @Column(name = "password")
-    private String password;
-
     @Column(name = "driver")
     private String driver;
 
