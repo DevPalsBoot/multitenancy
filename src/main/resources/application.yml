@@ -27,3 +27,9 @@ jwt:
   secret: c2lsdmVybmluZS10ZWNoLXNwcmluZy1ib290LWp3dC10dXRvcmlhbC1zZWNyZXQtc2lsdmVybmluZS10ZWNoLXNwcmluZy1ib290LWp3dC10dXRvcmlhbC1zZWNyZXQK
   token-period-sec: 600000 # ?
   refresh-token-period-day: 90 # ?
+
+storage:
+  url: 127.0.0.1
+  accessKey: root
+  secretKey: 1234
+  region:
