@@ -1,8 +1,5 @@
 # Multi-Tenancy Database with Spring Boot
 
-생성 일시: 2024년 9월 4일 오전 9:49
-생성자: 박지원 (since1909)
-
 ## 기술 구성
 
 - Java 17
