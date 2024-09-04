@@ -6,6 +6,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.sql.DataSource;
@@ -16,6 +17,7 @@ import org.springframework.jdbc.datasource.lookup.AbstractRoutingDataSource;
 import org.springframework.stereotype.Component;
 
 import com.example.multidata.entity.DataSourceInfo;
+import com.example.multidata.service.redis.TenantService;
 import com.zaxxer.hikari.HikariDataSource;
 
 import lombok.Getter;
@@ -45,6 +47,7 @@ public class DataSourceManager {
 
     private AbstractRoutingDataSource routingDataSource;
     private final DataSourceMigration dataSourceMigration;
+    private final TenantService tenantService;
 
     /**
      * 데이터소스 라우팅 초기화
@@ -55,6 +58,8 @@ public class DataSourceManager {
         routingDataSource.setTargetDataSources(dataSourceMap);
         routingDataSource.setDefaultTargetDataSource(defaultDataSource);
         routingDataSource.afterPropertiesSet();
+        setDataSourcePool();
+        migrateDataSourcePool();
         return routingDataSource;
     }
 
@@ -95,79 +100,25 @@ public class DataSourceManager {
         }
     }
 
-
-//    /**
-//     * 새로운 데이터 소스를 DataSource Map에 추가
-//     *
-//     * @param 추가할 데이터 소스의 테넌트 아이디
-//     */
-//    public void addDataSource(String tenantId) {
-//        if (!dataSourceMap.containsKey(tenantId)) {
-//            DataSource defaultDataSource = routingDataSource.getResolvedDefaultDataSource();
-//            HikariDataSource newDataSource = null;
-//
-//            JdbcTemplate jdbcTemplate = new JdbcTemplate(Objects.requireNonNull(defaultDataSource));
-//            String sql = "SELECT * FROM datasource_info WHERE tenant_id = ?";
-//            DataSourceInfo dataSourceInfo = jdbcTemplate.queryForObject(
-//                    sql,
-//                    new Object[]{tenantId},
-//                    (rs, rowNum) -> DataSourceInfo.builder()
-//                            .url(rs.getString("url"))
-//                            .driver(rs.getString("driver"))
-//                            .build()
-//            );
-//            if (dataSourceInfo == null) {
-//                log.error("Not Found: " + tenantId + " info is not found");
-//                return;
-//            }
-//            newDataSource = createDataSource(dataSourceInfo);
-//            dataSourceMap.put(tenantId, newDataSource);
-//
-//            if (!isTenantExists(tenantId)) {
-//                createTenant(tenantId, (HikariDataSource) dataSourceMap.get(tenantId));
-//            }
-//
-//            try (Connection c = newDataSource.getConnection()) {
-//                dataSourceMap.put(tenantId, newDataSource);
-//                routingDataSource.afterPropertiesSet();
-//                log.debug("Added DataSource: " + newDataSource.getJdbcUrl());
-//            } catch (SQLException e) {
-//                log.error("Error adding DataSource: " + e.getMessage(), e);
-//                throw new IllegalArgumentException("Invalid connection information.", e);
-//            }
-//        }
-//    }
-
-
-//    public void setDataSourcePool() {
-//        DataSource defaultDataSource = routingDataSource.getResolvedDefaultDataSource();
-//
-//        // Data source 정보로 Map 초기화
-//        JdbcTemplate jdbcTemplate = new JdbcTemplate(Objects.requireNonNull(defaultDataSource));
-//        String sql = "SELECT * FROM datasource_info";
-//        jdbcTemplate.query(
-//                sql,
-//                (rs, rowNum) -> {
-//                    DataSourceInfo dataSourceInfo = DataSourceInfo.builder()
-//                            .url(rs.getString("url"))
-//                            .driver(rs.getString("driver"))
-//                            .build();
-//
-//                    HikariDataSource dataSource = createDataSource(dataSourceInfo);
-//                    dataSourceMap.put(rs.getString("tenant_id"), dataSource);
-//
-//                    return dataSource;
-//                }
-//        );
-//
-//        // tenant db 생성
-//        for (Object key : dataSourceMap.keySet()) {
-//            String tenantId = (String) key;
-//            if (!isTenantExists(tenantId)) {
-//                createTenant(tenantId);
-//            }
-//        }
-//    }
+    /**
+     * 레디스에 저장된 테넌트로
+     * 데이터 소스 풀 저장
+     */
+    public void setDataSourcePool() {
+        DataSource defaultDataSource = routingDataSource.getResolvedDefaultDataSource();
+        Set<String> tenantIds = tenantService.getAllTenantIds();
+        for (String tenantId : tenantIds) {
+            HikariDataSource dataSource = createDataSource(changeDatabaseName(defaultUrl, tenantId));
+            try (Connection c = dataSource.getConnection()) {
+                dataSourceMap.put(tenantId, dataSource);
+                routingDataSource.afterPropertiesSet();
+                log.debug("Added DataSource: " + dataSource.getJdbcUrl());
+            } catch (SQLException e) {
+                log.error("Error adding DataSource: " + e.getMessage(), e);
+                throw new IllegalArgumentException("Invalid connection information.", e);
+            }
+        }
+    }
 
     /**
      * 데이터 소스 전체 마이그레이션
