@@ -1,5 +1,6 @@
 package com.example.multidata.controller;
 
+import com.example.multidata.domain.BucketCreate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -36,5 +37,14 @@ public class AdminRestController {
         }
         adminService.insertUsers(userCreate.getTenantId(), userCreate.getUsers());
         return new ResponseEntity<>(userCreate.getTenantId(), HttpStatus.OK);
+    }
+
+    @PostMapping("/tenant/s3")
+    public ResponseEntity<?> createS3(@RequestBody BucketCreate bucketCreate) {
+        if (bucketCreate == null || bucketCreate.getTenantId().isEmpty()) {
+            return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+        }
+        adminService.createBucket(bucketCreate.getTenantId());
+        return new ResponseEntity<>(bucketCreate.getTenantId(), HttpStatus.OK);
     }
 }

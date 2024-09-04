@@ -17,6 +17,8 @@ public class StorageClientConfig {
 
     @Value("${storage.url}")
     private String url;
+    @Value("${storage.port}")
+    private String port;
     @Value("${storage.accessKey}")
     private String accessKey;
     @Value("${storage.secretKey}")
@@ -37,10 +39,10 @@ public class StorageClientConfig {
                 .readTimeout(180, TimeUnit.SECONDS)
                 .build();
         MinioClient.Builder minioBuilder = MinioClient.builder()
-                .endpoint(url)
+                .endpoint(url, Integer.parseInt(port), false)
                 .credentials(accessKey, secretKey)
                 .httpClient(httpClient);
-        if (region != null) {
+        if (region != null && !region.isBlank()) {
             minioBuilder.region(region);
         }
         return minioBuilder.build();

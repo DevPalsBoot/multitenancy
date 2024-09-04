@@ -30,6 +30,7 @@ jwt:
 
 storage:
   url: 127.0.0.1
-  accessKey: root
-  secretKey: 1234
+  port: 9000
+  accessKey: CFJAXutHyQDDRDIIyyWv
+  secretKey: m6HMckuKIQYnduQKBrddGdtJ117FdeE0aYD010zH
   region:
