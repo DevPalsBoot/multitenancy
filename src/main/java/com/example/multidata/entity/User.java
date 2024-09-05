@@ -18,4 +18,7 @@ public class User {
 
     @Column(name = "email", nullable = false, length = 128, unique = true)
     private String email;
+
+    @Column(name = "pwd", nullable = false, length = 128)
+    private String pwd;
 }

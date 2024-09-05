@@ -4,7 +4,7 @@ spring:
   jpa:
     show-sql: true
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: none
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
@@ -12,3 +12,25 @@ spring:
     username: jiwon
     url: jdbc:postgresql://127.0.0.1:5432/cloud
     password: 
+    hikari:
+      driver-class-name: org.postgresql.Driver
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    locations: classpath:db/migration
+    cleanOnValidationError: false
+  data:
+    redis:
+      host: 127.0.0.1
+      port: 6379
+jwt:
+  secret: c2lsdmVybmluZS10ZWNoLXNwcmluZy1ib290LWp3dC10dXRvcmlhbC1zZWNyZXQtc2lsdmVybmluZS10ZWNoLXNwcmluZy1ib290LWp3dC10dXRvcmlhbC1zZWNyZXQK
+  token-period-sec: 600000 # ?
+  refresh-token-period-day: 90 # ?
+
+storage:
+  url: 127.0.0.1
+  port: 9000
+  accessKey: CFJAXutHyQDDRDIIyyWv
+  secretKey: m6HMckuKIQYnduQKBrddGdtJ117FdeE0aYD010zH
+  region:
