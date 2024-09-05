@@ -158,24 +158,16 @@ application.yml에 S3 설정 정보 수정 후 boot start
 storage:
   url: 127.0.0.1
   port: 9000
-  accessKey: 
-  secretKey: 
+  accessKey: #{콘솔에서 설정한 값 넣어주세요!}
+  secretKey: #{콘솔에서 설정한 값 넣어주세요!}
 ```
 
 ### 사전 조건
 1. S3 서버가 정상적으로 동작한다.
 2. TenantId에 매핑되는 S3 버킷이 있다. (API 제공)
 3. TenantId가 담긴 JWT 토큰이 있다.
+4. S3(minio) AccessKey가 있다. (콘솔에서 설정)
 
-```
-curl --location 'http://127.0.0.1:8080/api/admin/tenant/s3' \
---header 'Content-Type: application/json' \
---header 'Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJqaXN1bmEzMTRAZ21haWwuY29tIiwiZXhwIjoxNzI2MDM2MDc3fQ.OSEbjYljohTgDrV3hoOKkIkyM_Tvgk-I6CNbHFUPMt_72cJSlfvVWcDlpuIoeZrIU9gajZQLN4sCU55HVeAc8Q' \
---header 'Cookie: refresh_token=eyJhbGciOiJIUzUxMiJ9.eyJlbWFpbCI6ImFzc2V0QHNwYXJyb3dmYXNvby5jb20iLCJleHAiOjE3MzA3MDI1ODN9.mrr5L-s3yLByifjeEt_IuEgaMTTThAeqWdSfrpdjoUU7a4jiWY3rk3zHbv271I8nGFXHIMpMw3ZMSsymx0SWxA' \
---data '{
-"tenantId" : "TestTenant"
-}'
-```
 
 ### 로컬 테스트
 1. S3(minio) 서버 띄우기
@@ -183,8 +175,11 @@ curl --location 'http://127.0.0.1:8080/api/admin/tenant/s3' \
 $ docker run -p 9000:9000 -p 9001:9001 --name multi-minio -v D:/minio/data:/data -e "MINIO_ROOT_USER=ROOTUSER" -e "MINIO_ROOT_PASSWORD=CHANGEME123" 
 quay.io/minio/minio:latest server /data --console-address ":9001"
 ```
-2. S3(minio) AccessKey 생성
-콘솔 접속하여 AccessKey 생성
-3. TenantId에 매핑되는 S3 버킷 생성 API 요청
-4. tenantId가 담긴 JWT 토큰을 넣어서 다운로드 요청
+2. 사전 조건 API 수행
+   - 테넌트 생성
+   - 테넌트에 사용자 추가
+   - s3 버킷 생성
+3. 로그인
+4. 로그인 응답값으로 받은 token 넣어서 파일 업로드 요청
+4.  로그인 응답값으로 받은 token 넣어서 파일 다운로드 요청
 
