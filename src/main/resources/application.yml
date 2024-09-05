@@ -8,6 +8,8 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
+        default_schema: cloud
+
   datasource:
     username: jiwon
     url: jdbc:postgresql://127.0.0.1:5432/cloud

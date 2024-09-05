@@ -16,7 +16,9 @@ public enum ErrorCode {
     // STORAGE 1000
     FAIL_TO_CREATE_STORAGE_CLIENT(11000, "fail to create storage client."),
     FAIL_TO_CREATE_BUCKET(11001, "fail to create bucket"),
-    FAILED_TO_CHECK_IF_BUCKET_EXISTS (11001, "Failed to check if the bucket exists"),
+    FAILED_TO_CHECK_IF_BUCKET_EXISTS (11002, "Failed to check if the bucket exists"),
+    FAIL_TO_UPLOAD_FILE(11003, "Failed to uplaod file"),
+    FAIL_TO_DOWNLOAD_FILE(11003, "Failed to download file"),
 
     UNKNOWN(20000, "Unknown errors");
 
