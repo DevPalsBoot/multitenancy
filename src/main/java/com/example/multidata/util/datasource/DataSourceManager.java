@@ -42,6 +42,8 @@ public class DataSourceManager {
     private String defaultPwd;
     @Value("${spring.datasource.hikari.driver-class-name}")
     private String defaultDriver;
+    @Value("${spring.jpa.properties.hibernate.default_schema:}")
+    private String defaultSchema;
 
     private final Map<Object, Object> dataSourceMap = new ConcurrentHashMap<>(); // tenantId - dataSourceInfo Map
 
@@ -193,6 +195,7 @@ public class DataSourceManager {
         dataSource.setPassword(defaultPwd);
         dataSource.setDriverClassName(defaultDriver);
         dataSource.setMaximumPoolSize(10);
+        dataSource.setConnectionInitSql("SET search_path TO " + defaultSchema);
 
         return dataSource;
     }
@@ -206,6 +209,8 @@ public class DataSourceManager {
         defaultDataSource.setPassword(defaultPwd);
         defaultDataSource.setDriverClassName(defaultDriver);
         defaultDataSource.setMaximumPoolSize(10);
+        defaultDataSource.setConnectionInitSql("SET search_path TO " + defaultSchema);
+
         log.debug("Set Default DataSource: " + defaultDataSource.getJdbcUrl());
 
         return defaultDataSource;
@@ -213,10 +218,15 @@ public class DataSourceManager {
 
     private String changeDatabaseName(String jdbcUrl, String newDatabaseName) {
         int lastSlashIndex = jdbcUrl.lastIndexOf('/');
-        if (lastSlashIndex == -1 || lastSlashIndex == jdbcUrl.length() - 1) {
+        int queryParamIndex = jdbcUrl.indexOf('?');
+
+        if (lastSlashIndex == -1 || (queryParamIndex != -1 && lastSlashIndex > queryParamIndex)) {
             throw new IllegalArgumentException("Invalid JDBC URL format: " + jdbcUrl);
         }
 
-        return jdbcUrl.substring(0, lastSlashIndex + 1) + newDatabaseName;
+        String baseUrl = jdbcUrl.substring(0, lastSlashIndex + 1);
+        String remainingUrl = queryParamIndex == -1 ? "" : jdbcUrl.substring(queryParamIndex);
+
+        return baseUrl + newDatabaseName + remainingUrl;
     }
 }
